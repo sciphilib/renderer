@@ -42,11 +42,20 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 int main() {
   TGAImage image(100, 100, TGAImage::RGB);
+  for (int i = 0; i <= 1000000; ++i) {
+  line(80, 40, 13, 20, image, red);
   line(13, 20, 80, 40, image, white);
   line(20, 13, 40, 80, image, red);
-  line(80, 40, 13, 20, image, red);
+  }
   // make the origin at the left bottom corner of the image
   image.flip_vertically();
   image.write_tga_file("output.tga");
   return 0;
 }
+
+
+// profiling (gprof main)
+// time | func name
+// 42   | line
+// 30   | TGAimage::set
+// 14   | TGAColor::TGAColor(TGAColor const&)
