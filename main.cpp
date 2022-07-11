@@ -10,7 +10,7 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 // TODO:
 // 1) asserts and other validation
 // 2) optimization
-void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
+void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color) {
 
   // symmetry test: it's necessaty to draw the same line, regardless
   // of the order of the coordinates of its points
@@ -30,13 +30,31 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     steep = true;
   }
 
+  // optimization:
+  // 1. each division has the same divisor
+  //    so take it out of the loop 
+  const int dx = x1 - x0;
+  const int dy = y1 - y0;
+
+  // optimization
+  // 2. get rid of all float variables
+  // the error stores the distance to the ideal line from current pixel (x, y)
+  int error = 0;
+  const int derror = std::abs(dy) * 2;
+  int y = y0;
+
   for (int x = x0; x <= x1; ++x) {
-    float t = (x - x0) / static_cast<float>(x1 - x0);
-    int y = y0*(1.0f - t) + y1*t;
+
     if (steep)
       image.set(y, x, color);
     else
       image.set(x, y, color);
+    error += derror;
+
+    if (error > dx) {
+      y += (y1 > y0 ? 1 : -1);
+      error -= dx * 2;
+    }
   }
 }
 
@@ -52,10 +70,3 @@ int main() {
   image.write_tga_file("output.tga");
   return 0;
 }
-
-
-// profiling (gprof main)
-// time | func name
-// 42   | line
-// 30   | TGAimage::set
-// 14   | TGAColor::TGAColor(TGAColor const&)
