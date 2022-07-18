@@ -11,10 +11,11 @@ Model::Model(const char* filename) :  verts_(), faces_() {
   in.open(filename, std::ifstream::in);
   if (in.fail()) return;
   std::string line;
+  
   while (!in.eof()) {
     std::getline(in, line);
     std::istringstream iss(line.c_str());
-    char trash;
+    char trash, check;
     if (!line.compare(0, 2, "v ")) {
       iss >> trash;
       Vec3f v;
@@ -24,12 +25,23 @@ Model::Model(const char* filename) :  verts_(), faces_() {
     else if (!line.compare(0, 2, "f ")) {
       std::vector<int> f;
       int itrash, idx;
+      // checking if texture coordinates are missing in face elements
+      iss >> trash >> itrash >> trash;
+      check = iss.peek();
+      iss.seekg(0);
       iss >> trash;
-      while (iss >> idx >> trash >> itrash >> trash >> itrash) {
-	// in wavefront obj all indices start at 1, not 0
-	idx--;
-	f.push_back(idx);
-      }
+      if (check == '/')
+	while (iss >> idx >> trash >> trash >> itrash) {
+	  // in wavefront obj all indices start at 1, not 0
+	  idx--;
+	  f.push_back(idx);
+	}
+      else 
+	while (iss >> idx >> trash >> itrash >> trash >> itrash) {
+	  // in wavefront obj all indices start at 1, not 0
+	  idx--;
+	  f.push_back(idx);
+	}
       faces_.push_back(f);
     }
   }
